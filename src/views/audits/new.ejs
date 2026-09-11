@@ -1,0 +1,34 @@
+<p><a href="/audits">← Аудиты</a></p>
+<h1>Новый аудит</h1>
+<% if (error) { %><div class="alert-error"><%= error %></div><% } %>
+<form method="POST" action="/audits" class="card record-form">
+  <label>Название *
+    <input type="text" name="title" required placeholder="например, Плановый внутренний аудит — склад сырья">
+  </label>
+  <label>Стандарт
+    <select name="standard_id">
+      <option value="">—</option>
+      <% standards.forEach(s => { %><option value="<%= s.id %>"><%= s.name %></option><% }) %>
+    </select>
+  </label>
+  <label>Точка карты (пункт требования)
+    <select name="map_point_id">
+      <option value="">—</option>
+      <% points.forEach(p => { %><option value="<%= p.id %>"><%= p.standard_name %> — <%= p.clause %></option><% }) %>
+    </select>
+  </label>
+  <label>Дата проведения <input type="date" name="planned_date"></label>
+  <label>Аудитор
+    <select name="auditor_id">
+      <option value="">—</option>
+      <% users.forEach(u => { %><option value="<%= u.id %>"><%= u.full_name %></option><% }) %>
+    </select>
+  </label>
+  <label>Ответственный за исполнение (получит отчёт)
+    <select name="responsible_id">
+      <option value="">—</option>
+      <% users.forEach(u => { %><option value="<%= u.id %>"><%= u.full_name %></option><% }) %>
+    </select>
+  </label>
+  <button class="btn-primary">Запланировать</button>
+</form>

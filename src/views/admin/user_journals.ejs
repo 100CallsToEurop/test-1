@@ -1,0 +1,18 @@
+<p><a href="/admin">← Администрирование</a></p>
+<h1>Журналы для <%= targetUser.full_name %> <span class="hint">(<%= targetUser.role_code %>)</span></h1>
+<p class="muted">Отметьте журналы, которые должен видеть этот пользователь. Для ролей администратор/специалист по качеству/руководитель видимость не ограничивается — они видят всю библиотеку независимо от этого списка.</p>
+
+<form method="POST" action="/admin/users/<%= targetUser.id %>/journals">
+  <% Object.keys(byGroup).forEach(group => { %>
+    <div class="card">
+      <h2><%= group %></h2>
+      <% byGroup[group].forEach(j => { %>
+        <label class="radio" style="margin-bottom:6px">
+          <input type="checkbox" name="journal_ids" value="<%= j.id %>" <%= assigned.has(j.id) ? 'checked' : '' %>>
+          <%= j.name %> <span class="hint">(<%= j.form_type %>)</span>
+        </label><br>
+      <% }) %>
+    </div>
+  <% }) %>
+  <button class="btn-primary">Сохранить назначение</button>
+</form>

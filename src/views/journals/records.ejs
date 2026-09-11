@@ -1,0 +1,54 @@
+<p><a href="/journals">← Библиотека журналов</a></p>
+<div class="toolbar">
+  <h1 style="margin:0"><%= journal.name %></h1>
+  <div class="view-toggle">
+    <a href="?<%= new URLSearchParams({...query, view:'list'}).toString() %>" class="<%= view==='list'?'active':'' %>">Список</a>
+    <a href="?<%= new URLSearchParams({...query, view:'table'}).toString() %>" class="<%= view==='table'?'active':'' %>">Таблица</a>
+  </div>
+</div>
+<p class="muted small">
+  <%= journal.group_name %> · <%= journal.periodicity %> · заполняет: <%= journal.role_fill %>
+  <% if (journal.map_clause) { %> · <b><%= journal.standard_name %> — <%= journal.map_clause %></b><% } %>
+</p>
+
+<%- include('_quick_add') %>
+
+<details class="filter-details">
+  <summary>Поиск и фильтры<% if (query.q || query.from || query.to) { %> <span class="chip chip-warn">активны</span><% } %></summary>
+  <form method="GET" action="/journals/<%= journal.id %>" class="filter-form-compact">
+    <input type="hidden" name="view" value="<%= view %>">
+    <input type="text" name="q" value="<%= query.q || '' %>" placeholder="поиск по автору и значениям">
+    <input type="date" name="from" value="<%= query.from || '' %>" title="с даты">
+    <input type="date" name="to" value="<%= query.to || '' %>" title="по дату">
+    <button class="btn-secondary">Найти</button>
+    <a class="link-btn" href="/journals/<%= journal.id %>?view=<%= view %>">Сбросить</a>
+  </form>
+</details>
+
+<div class="card">
+  <h2>Записи (<%= records.length %>)</h2>
+  <% if (!records.length) { %>
+    <p class="muted">Записей не найдено.</p>
+  <% } else { %>
+    <div class="table-scroll">
+    <table>
+      <thead><tr>
+        <th><a href="?<%= new URLSearchParams({...query, sort:'created_at', dir: query.sort==='created_at'&&query.dir!=='desc'?'desc':'asc'}).toString() %>">Дата</a></th>
+        <th><a href="?<%= new URLSearchParams({...query, sort:'author', dir: query.sort==='author'&&query.dir!=='desc'?'desc':'asc'}).toString() %>">Автор</a></th>
+        <th>Статус</th><th>Отклонение</th><th>Проверил</th>
+      </tr></thead>
+      <tbody>
+      <% records.forEach(r => { %>
+        <tr class="<%= r.deviation ? 'row-danger' : '' %>">
+          <td><a href="/records/<%= r.id %>"><%= r.created_at %></a></td>
+          <td><%= r.author_name %></td>
+          <td><%= ({draft:'Черновик', saved:'Сохранена', verified:'Проверена'})[r.status] %></td>
+          <td><%= r.deviation ? 'ОТКЛОНЕНИЕ' : '—' %></td>
+          <td><%= r.verifier_name || '—' %></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+    </div>
+  <% } %>
+</div>

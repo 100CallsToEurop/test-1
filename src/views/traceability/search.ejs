@@ -1,0 +1,32 @@
+<h1>Прослеживаемость</h1>
+
+<form method="GET" action="/traceability/search" class="card record-form inline-form">
+  <label>Номер партии
+    <input type="text" name="number" placeholder="например, ГП-2026-0001" required>
+  </label>
+  <button class="btn-primary">Найти</button>
+</form>
+<% if (notFound) { %><div class="alert-error">Партия «<%= query %>» не найдена.</div><% } %>
+
+<div class="card">
+  <h2>Связать партии вручную (демо / ручной ввод)</h2>
+  <form method="POST" action="/traceability/link" class="record-form inline-form">
+    <label>Партия (потомок) <input type="text" name="child_number" required></label>
+    <label>Из партии (источник) <input type="text" name="parent_number" required></label>
+    <label>Тип связи <input type="text" name="link_type" placeholder="production"></label>
+    <button class="btn-secondary">Связать</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Последние партии</h2>
+  <table>
+    <thead><tr><th>Номер</th><th>Продукт</th><th>Дата</th><th>Статус</th><th></th></tr></thead>
+    <tbody>
+    <% recent.forEach(b => { %>
+      <tr><td><%= b.number %></td><td><%= b.product || '—' %></td><td><%= b.produced_at || '—' %></td><td><%= b.status %></td>
+      <td><a href="/traceability/<%= encodeURIComponent(b.number) %>">Карточка →</a></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>

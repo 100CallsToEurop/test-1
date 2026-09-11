@@ -1,0 +1,102 @@
+<p><a href="/journals/<%= journal.id %>">← <%= journal.name %></a></p>
+<h1>Запись — <%= journal.name %></h1>
+
+<% if (suggestJournal) { %>
+  <div class="alert-info">
+    Этот журнал связан с журналом «<b><%= suggestJournal.name %></b>» через точку карты критических точек (раздел 4.1.4 спецификации — «одно событие — несколько записей»).
+    <a href="/records/<%= suggestJournal.id %>/new">Создать связанную запись →</a>
+    <span class="muted">(можно пропустить — это подсказка, не обязательное действие)</span>
+  </div>
+<% } %>
+
+<div class="card">
+  <p>
+    Статус: <b><%= ({draft:'Черновик', saved:'Сохранена', verified:'Проверена'})[record.status] %></b>
+    · Автор: <%= record.author_name %> · Создана: <%= record.created_at %>
+    <% if (record.verifier_name) { %> · Проверил: <%= record.verifier_name %> (<%= record.verified_at %>)<% } %>
+  </p>
+  <% if (record.deviation) { %>
+    <div class="alert-error">ОТКЛОНЕНИЕ / ЕСТЬ ЗАМЕЧАНИЯ. Комментарий-причина: <%= record.deviation_comment %></div>
+  <% } %>
+
+  <table>
+    <tbody>
+    <% fields.forEach(f => { %>
+      <tr>
+        <td class="label-cell"><%= f.label %></td>
+        <td>
+          <% if (f.type === 'indicator_table') { %>
+            <% (values[f.code] || []).forEach(row => { %><div><%= row.join(' / ') %></div><% }) %>
+          <% } else if (f.type === 'photo') { %>
+            <% if (values[f.code]) { %>
+              <a href="/uploads/<%= values[f.code] %>" target="_blank" rel="noopener">
+                <% if (/\.(jpe?g|png|gif|webp)$/i.test(values[f.code])) { %>
+                  <img src="/uploads/<%= values[f.code] %>" alt="фото" style="max-width:220px; max-height:220px; border-radius:6px; display:block">
+                <% } else { %>📎 Открыть файл<% } %>
+              </a>
+            <% } else { %>—<% } %>
+          <% } else { %>
+            <%= values[f.code] %>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+
+  <div class="actions">
+    <% if (canVerify) { %>
+      <form method="POST" action="/records/<%= record.id %>/verify" style="display:inline">
+        <button class="btn-primary">Отметить «Проверено»</button>
+      </form>
+    <% } %>
+    <a class="btn-secondary" href="/nonconformities/new?record_id=<%= record.id %>">Создать несоответствие</a>
+  </div>
+
+  <% if (canEdit) { %>
+    <details>
+      <summary>Исправить запись (специалист по качеству, с сохранением истории)</summary>
+      <form method="POST" action="/records/<%= record.id %>/edit" class="record-form">
+        <% fields.forEach(f => { if (f.type === 'indicator_table') return; %>
+          <label>
+            <%= f.label %>
+            <% if (f.type === 'checklist_item') { %>
+              <select name="<%= f.code %>">
+                <option value="Да" <%= values[f.code]==='Да'?'selected':'' %>>Да</option>
+                <option value="Нет" <%= values[f.code]==='Нет'?'selected':'' %>>Нет</option>
+              </select>
+            <% } else { %>
+              <input type="text" name="<%= f.code %>" value="<%= values[f.code] || '' %>">
+            <% } %>
+          </label>
+        <% }) %>
+        <button class="btn-primary">Сохранить исправление</button>
+      </form>
+    </details>
+  <% } %>
+</div>
+
+<% if (nc.length) { %>
+<div class="card">
+  <h2>Связанные несоответствия</h2>
+  <ul>
+    <% nc.forEach(n => { %><li><a href="/nonconformities/<%= n.id %>">#<%= n.id %> — <%= n.description %> (<%= n.status %>)</a></li><% }) %>
+  </ul>
+</div>
+<% } %>
+
+<div class="card">
+  <h2>История изменений</h2>
+  <% if (!history.length) { %>
+    <p class="muted">Изменений не было.</p>
+  <% } else { %>
+    <table>
+      <thead><tr><th>Когда</th><th>Кто</th><th>Поле</th><th>Было</th><th>Стало</th></tr></thead>
+      <tbody>
+      <% history.forEach(h => { %>
+        <tr><td><%= h.changed_at %></td><td><%= h.changed_by_name %></td><td><%= h.field_code %></td><td><%= h.old_value %></td><td><%= h.new_value %></td></tr>
+      <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>

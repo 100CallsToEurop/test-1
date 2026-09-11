@@ -1,0 +1,19 @@
+<p><a href="/constructor">← Конструктор</a></p>
+<h1>Новый журнал с нуля</h1>
+<% if (error) { %><div class="alert-error"><%= error %></div><% } %>
+<form method="POST" action="/constructor/new" class="card record-form">
+  <label>Название *<input type="text" name="name" required></label>
+  <label>Группа библиотеки *<input type="text" name="group_name" required placeholder="например, Производственные журналы"></label>
+  <label>Тип формы *
+    <select name="form_type" required>
+      <option value="T1">Т1 — параметрический контроль</option>
+      <option value="T2">Т2 — чек-лист Да/Нет</option>
+      <option value="T3">Т3 — табличный ввод показателей</option>
+      <option value="T4">Т4 — карточка события</option>
+    </select>
+  </label>
+  <label>Периодичность <input type="text" name="periodicity" placeholder="например, ежедневно"></label>
+  <label>Роль-исполнитель <input type="text" name="role_fill"></label>
+  <label>Роль-проверяющий <input type="text" name="role_verify"></label>
+  <button class="btn-primary">Создать журнал</button>
+</form>

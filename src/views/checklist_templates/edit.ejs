@@ -1,0 +1,47 @@
+<p><a href="/checklist-templates">← Шаблоны чек-листов</a></p>
+<h1><%= template.name %></h1>
+<p class="muted">Категория: <%= template.category || '—' %> · Стандарт: <%= template.standard_name || '—' %></p>
+
+<div class="card">
+  <h2>Пункты (<%= items.length %>)</h2>
+  <% if (!items.length) { %><p class="muted">Пунктов пока нет.</p><% } else { %>
+  <table>
+    <thead><tr><th>Пункт</th><th></th></tr></thead>
+    <tbody>
+    <% items.forEach((it, i) => { %>
+      <tr>
+        <td>
+          <% if (canEdit) { %>
+            <form method="POST" action="/checklist-templates/<%= template.id %>/items/<%= it.id %>/rename" class="inline-form">
+              <input type="text" name="text" value="<%= it.text %>" size="60">
+              <button class="btn-secondary">Сохранить</button>
+            </form>
+          <% } else { %><%= it.text %><% } %>
+        </td>
+        <td class="btn-row">
+          <% if (canEdit) { %>
+            <form method="POST" action="/checklist-templates/<%= template.id %>/items/<%= it.id %>/move/up" class="inline-form"><button class="link-btn" <%= i===0?'disabled':'' %>>↑</button></form>
+            <form method="POST" action="/checklist-templates/<%= template.id %>/items/<%= it.id %>/move/down" class="inline-form"><button class="link-btn" <%= i===items.length-1?'disabled':'' %>>↓</button></form>
+            <form method="POST" action="/checklist-templates/<%= template.id %>/items/<%= it.id %>/remove" class="inline-form" onsubmit="return confirm('Убрать этот пункт из шаблона?')"><button class="link-btn danger">удалить</button></form>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+
+  <% if (canEdit) { %>
+  <div class="subcard">
+    <h3>Добавить пункт</h3>
+    <form method="POST" action="/checklist-templates/<%= template.id %>/items" class="inline-form">
+      <input type="text" name="text" placeholder="формулировка пункта" style="min-width:360px" required>
+      <button class="btn-primary">Добавить</button>
+    </form>
+  </div>
+  <% } %>
+</div>
+
+<div class="alert-info">
+  Чтобы применить этот шаблон на конкретной проверке, откройте нужный аудит (раздел «Аудиты») и на вкладке «Идёт» выберите его в блоке «Применить готовый чек-лист» — пункты скопируются в аудит и можно будет отвечать по каждому.
+</div>

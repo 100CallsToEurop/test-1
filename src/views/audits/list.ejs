@@ -1,0 +1,47 @@
+<div class="toolbar">
+  <h1 style="margin:0">Аудиты — план и календарь</h1>
+  <a class="btn-primary" href="/audits/new">+ Запланировать аудит</a>
+</div>
+
+<details class="filter-details" <%= (query.status || query.from || query.to) ? 'open' : '' %>>
+  <summary>Фильтры<% if (query.status || query.from || query.to) { %> <span class="chip chip-warn">активны</span><% } %></summary>
+  <form method="GET" action="/audits" class="filter-form-compact">
+    <select name="status">
+      <option value="">Все статусы</option>
+      <option value="planned" <%= query.status==='planned'?'selected':'' %>>Запланирован</option>
+      <option value="in_progress" <%= query.status==='in_progress'?'selected':'' %>>Идёт</option>
+      <option value="completed" <%= query.status==='completed'?'selected':'' %>>Завершён</option>
+      <option value="sent" <%= query.status==='sent'?'selected':'' %>>Отправлен ответственному</option>
+      <option value="responded" <%= query.status==='responded'?'selected':'' %>>Получен ответ</option>
+      <option value="closed" <%= query.status==='closed'?'selected':'' %>>Закрыт</option>
+    </select>
+    <input type="date" name="from" value="<%= query.from || '' %>" title="с даты">
+    <input type="date" name="to" value="<%= query.to || '' %>" title="по дату">
+    <button class="btn-secondary">Найти</button>
+    <a class="link-btn" href="/audits">Сбросить</a>
+  </form>
+</details>
+
+<div class="card">
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Дата</th><th>Название</th><th>Стандарт</th><th>Аудитор</th><th>Ответственный</th><th>Статус</th><th>Замечаний</th></tr></thead>
+    <tbody>
+    <% audits.forEach(a => { %>
+      <tr class="<%= a.findings_count > 0 && a.status !== 'closed' ? 'row-warn' : '' %>">
+        <td><%= a.planned_date || '—' %></td>
+        <td><a href="/audits/<%= a.id %>"><%= a.title %></a></td>
+        <td><%= a.standard_name || '—' %></td>
+        <td><%= a.auditor_name || '—' %></td>
+        <td><%= a.responsible_name || '—' %></td>
+        <td><span class="chip <%= a.status==='closed'?'chip-ok':(a.status==='sent'?'chip-warn':'chip-muted') %>"><%=
+          ({planned:'Запланирован', in_progress:'Идёт', completed:'Завершён', sent:'Отправлен', responded:'Получен ответ', closed:'Закрыт'})[a.status]
+        %></span></td>
+        <td><%= a.findings_count %> / <%= a.items_count %></td>
+      </tr>
+    <% }) %>
+    <% if (!audits.length) { %><tr><td colspan="7" class="muted">Аудитов не найдено.</td></tr><% } %>
+    </tbody>
+  </table>
+  </div>
+</div>

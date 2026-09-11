@@ -1,0 +1,71 @@
+<p><a href="/constructor">← Конструктор</a></p>
+<h1>Конструктор — <%= journal.name %></h1>
+<p class="muted">Тип формы: <%= journal.form_type %>. Изменение состава полей создаёт новую версию схемы (раздел 2.2 спецификации) — версий уже: <%= versions.length %>. Старые записи сохраняют прежний набор полей.</p>
+
+<div class="card">
+  <h2>Текущие поля</h2>
+  <table>
+    <thead><tr><th>Подпись</th><th>Тип</th><th>Обязательное</th><th></th></tr></thead>
+    <tbody>
+    <% fields.forEach((f, i) => { %>
+      <tr>
+        <td>
+          <form method="POST" action="/constructor/<%= journal.id %>/rename-field/<%= f.code %>" class="inline-form">
+            <input type="text" name="label" value="<%= f.label %>" size="28">
+            <button class="btn-secondary">Переименовать</button>
+          </form>
+        </td>
+        <td><%= f.type %></td>
+        <td><%= f.required ? 'да' : 'нет' %></td>
+        <td>
+          <form method="POST" action="/constructor/<%= journal.id %>/move-field/<%= f.code %>/up" class="inline-form"><button class="link-btn" <%= i===0?'disabled':'' %>>↑</button></form>
+          <form method="POST" action="/constructor/<%= journal.id %>/move-field/<%= f.code %>/down" class="inline-form"><button class="link-btn" <%= i===fields.length-1?'disabled':'' %>>↓</button></form>
+          <% if (f.code !== 'value' && f.code !== 'comment') { %>
+          <form method="POST" action="/constructor/<%= journal.id %>/remove-field/<%= f.code %>" class="inline-form" onsubmit="return confirm('Убрать поле «' + <%- JSON.stringify(f.label) %> + '» из формы? Уже сохранённые записи это поле не потеряют — изменится только форма для новых записей.')"><button class="link-btn danger">удалить</button></form>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Добавить поле</h2>
+  <form method="POST" action="/constructor/<%= journal.id %>/add-field" class="record-form" id="addFieldForm">
+    <label>Подпись поля *<input type="text" name="label" required></label>
+    <label>Тип *
+      <select name="type" id="fieldType">
+        <option value="text">Текст</option>
+        <option value="number">Число</option>
+        <option value="date">Дата</option>
+        <option value="select">Список (выбор одного варианта)</option>
+        <option value="checklist_item">Пункт чек-листа (Да/Нет)</option>
+      <option value="photo">Фото/файл-подтверждение</option>
+      </select>
+    </label>
+    <label><input type="checkbox" name="required"> обязательное поле</label>
+    <fieldset id="numberOpts">
+      <legend>Только для типа «Число»</legend>
+      <label>Единица измерения <input type="text" name="unit"></label>
+      <label>Норма — минимум <input type="number" step="any" name="norm_min"></label>
+      <label>Норма — максимум <input type="number" step="any" name="norm_max"></label>
+    </fieldset>
+    <fieldset id="optionsOpts">
+      <legend>Только для «Список» / «Пункт чек-листа»</legend>
+      <label>Варианты через запятую <input type="text" name="options" placeholder="Да,Нет"></label>
+    </fieldset>
+    <button class="btn-primary">Добавить поле</button>
+  </form>
+</div>
+
+<script>
+  // просто скрываем нерелевантные подсказки — конструктор всё равно не блокирует лишний ввод
+  var typeSel = document.getElementById('fieldType');
+  function refresh() {
+    document.getElementById('numberOpts').style.display = typeSel.value === 'number' ? 'block' : 'none';
+    document.getElementById('optionsOpts').style.display = (typeSel.value === 'select' || typeSel.value === 'checklist_item') ? 'block' : 'none';
+  }
+  typeSel.addEventListener('change', refresh);
+  refresh();
+</script>

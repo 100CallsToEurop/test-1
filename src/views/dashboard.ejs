@@ -1,0 +1,80 @@
+<h1>Дашборд</h1>
+
+<% if (myAuditsToRespond.length) { %>
+<div class="alert-warn">
+  Вам направлен<%= myAuditsToRespond.length > 1 ? 'ы' : '' %> отчёт<%= myAuditsToRespond.length > 1 ? 'ы' : '' %> аудита на ответ:
+  <% myAuditsToRespond.forEach(a => { %> <a href="/audits/<%= a.id %>"><%= a.title %></a><% }) %>
+</div>
+<% } %>
+
+<div class="stat-row">
+  <div class="stat-card"><div class="stat-num"><%= totals.journals %></div><div>активных журналов</div></div>
+  <div class="stat-card"><div class="stat-num"><%= totals.records %></div><div>записей всего</div></div>
+  <div class="stat-card <%= totals.openNc ? 'stat-warn' : '' %>"><div class="stat-num"><%= totals.openNc %></div><div>открытых несоответствий</div></div>
+  <div class="stat-card <%= totals.criticalNc ? 'stat-danger' : '' %>"><div class="stat-num"><%= totals.criticalNc %></div><div>из них критических</div></div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Просроченные мероприятия</h2>
+    <% if (!overdue.length) { %>
+      <p class="muted">Просрочек нет.</p>
+    <% } else { %>
+      <table>
+        <thead><tr><th>Журнал</th><th>Ожидаемый интервал</th><th>Последняя запись</th></tr></thead>
+        <tbody>
+        <% overdue.forEach(o => { %>
+          <tr>
+            <td><a href="/journals/<%= o.journal.id %>"><%= o.journal.name %></a></td>
+            <td><%= o.expectedIntervalHours %> ч</td>
+            <td><%= o.lastRecordAt || '— записей ещё не было' %></td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <h2>Открытые несоответствия</h2>
+    <% if (!openNc.length) { %>
+      <p class="muted">Нет открытых несоответствий.</p>
+    <% } else { %>
+      <table>
+        <thead><tr><th>№</th><th>Описание</th><th>Критичность</th><th>Статус</th><th>Исполнитель</th></tr></thead>
+        <tbody>
+        <% openNc.forEach(n => { %>
+          <tr class="<%= n.criticality === 'critical' ? 'row-danger' : '' %>">
+            <td><a href="/nonconformities/<%= n.id %>">#<%= n.id %></a></td>
+            <td><%= n.description %></td>
+            <td><%= n.criticality === 'critical' ? 'критическое' : 'обычное' %></td>
+            <td><%= n.status %></td>
+            <td><%= n.assignee_name || '—' %></td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Недавние отклонения</h2>
+  <% if (!recentDeviations.length) { %>
+    <p class="muted">Отклонений не зафиксировано.</p>
+  <% } else { %>
+    <table>
+      <thead><tr><th>Журнал</th><th>Дата</th><th>Комментарий-причина</th><th></th></tr></thead>
+      <tbody>
+      <% recentDeviations.forEach(r => { %>
+        <tr>
+          <td><%= r.journal_name %></td>
+          <td><%= r.created_at %></td>
+          <td><%= r.deviation_comment %></td>
+          <td><a href="/records/<%= r.id %>">Открыть →</a></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>

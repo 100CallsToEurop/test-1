@@ -1,0 +1,92 @@
+<h1>Карта критических точек и процессов</h1>
+<p class="muted">Каждая точка — пункт стандарта. Видно, какие журналы к ней привязаны, что по ним делается (есть свежие записи), что не делается (просрочено), и какие отчёты её покрывают.</p>
+
+<% points.forEach(p => { %>
+  <div class="card">
+    <div class="toolbar">
+      <div class="req-title"><%= p.standard_name %> — <%= p.clause %> <span class="badge"><%= p.point_type %></span></div>
+      <div>
+        <% if (p.journals.length) { %>
+          <span class="chip chip-ok"><%= p.doneCount %> в порядке</span>
+          <% if (p.missingCount) { %><span class="chip chip-danger"><%= p.missingCount %> не делается</span><% } %>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (!p.journals.length) { %>
+      <p class="muted">Журналов не привязано.</p>
+    <% } else { %>
+      <table>
+        <thead><tr><th>Журнал</th><th>Периодичность</th><th>Последняя запись</th><th>Статус</th></tr></thead>
+        <tbody>
+        <% p.journals.forEach(j => { %>
+          <tr class="<%= j.overdue ? 'row-danger' : '' %>">
+            <td><a href="/journals/<%= j.id %>"><%= j.name %></a></td>
+            <td><%= j.periodicity %></td>
+            <td><%= j.last_record_at || 'записей ещё не было' %></td>
+            <td>
+              <% if (!j.tracked) { %><span class="chip chip-muted">не отслеживается по сроку</span>
+              <% } else if (j.overdue) { %><span class="chip chip-danger">не делается</span>
+              <% } else { %><span class="chip chip-ok">делается</span><% } %>
+            </td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+
+    <p class="hint" style="margin-top:10px">
+      Покрывающие отчёты: <%= p.reportNames.length ? p.reportNames.join(', ') : 'не указаны' %>
+    </p>
+  </div>
+<% }) %>
+<% if (!points.length) { %><div class="card"><p class="muted">Точек пока нет — создайте первую ниже.</p></div><% } %>
+
+<% if (locals.user && ['admin','quality'].includes(user.role_code)) { %>
+<div class="grid-2">
+  <div class="card">
+    <h2>Новая точка карты</h2>
+    <form method="POST" action="/map" class="record-form">
+      <label>Стандарт (из справочника)
+        <select name="standard_id">
+          <option value="">—</option>
+          <% standards.forEach(s => { %><option value="<%= s.id %>"><%= s.name %></option><% }) %>
+        </select>
+      </label>
+      <label>...или новый стандарт <input type="text" name="new_standard" placeholder="например, чек-лист сети «Х5»"></label>
+      <label>Пункт/раздел <input type="text" name="clause" required placeholder="п. 8.5.4 Контроль мониторинга и измерений"></label>
+      <label>Тип
+        <select name="point_type">
+          <option value="CCP">CCP</option>
+          <option value="OPRP">OPRP</option>
+          <option value="ISO">Пункт ИСО</option>
+          <option value="other">Иное</option>
+        </select>
+      </label>
+      <button class="btn-primary">Создать точку</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Привязка журнала / отчёта к точке</h2>
+    <% points.forEach(p => { %>
+      <div class="subcard">
+        <b><%= p.standard_name %> — <%= p.clause %></b>
+        <form method="POST" action="/map/<%= p.id %>/link" class="inline-form" style="margin-top:6px">
+          <select name="journal_id">
+            <% unlinkedJournals.forEach(j => { %><option value="<%= j.id %>"><%= j.name %></option><% }) %>
+          </select>
+          <button class="btn-secondary">+ журнал</button>
+        </form>
+        <form method="POST" action="/map/<%= p.id %>/link-report" class="inline-form" style="margin-top:6px">
+          <select name="report_code">
+            <% reportCatalog.forEach(r => { %><option value="<%= r[0] %>"><%= r[1] %></option><% }) %>
+          </select>
+          <button class="btn-secondary">+ отчёт</button>
+        </form>
+      </div>
+    <% }) %>
+    <% if (!unlinkedJournals.length) { %><p class="muted">Все журналы уже привязаны к какой-либо точке.</p><% } %>
+  </div>
+</div>
+<% } %>

@@ -1,0 +1,24 @@
+<div class="toolbar">
+  <h1 style="margin:0">Шаблоны чек-листов</h1>
+  <a class="btn-primary" href="/checklist-templates/new">+ Новый шаблон</a>
+</div>
+<p class="muted">Готовые наборы пунктов для аудитов — можно применить как есть на конкретном аудите, донастроить под себя или создать свой с нуля.</p>
+
+<% Object.keys(byCategory).forEach(cat => { %>
+  <div class="card">
+    <h2><%= cat %></h2>
+    <table>
+      <thead><tr><th>Шаблон</th><th>Стандарт</th><th>Пунктов</th></tr></thead>
+      <tbody>
+      <% byCategory[cat].forEach(t => { %>
+        <tr>
+          <td><a href="/checklist-templates/<%= t.id %>"><%= t.name %></a></td>
+          <td><%= t.standard_name || '—' %></td>
+          <td><%= t.items_count %></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% }) %>
+<% if (!Object.keys(byCategory).length) { %><div class="card"><p class="muted">Шаблонов пока нет.</p></div><% } %>

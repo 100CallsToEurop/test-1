@@ -1,0 +1,17 @@
+<p><a href="/nonconformities">← Несоответствия</a></p>
+<h1>Регистрация несоответствия</h1>
+<% if (error) { %><div class="alert-error"><%= error %></div><% } %>
+<form method="POST" action="/nonconformities" class="card record-form">
+  <label>Описание *
+    <textarea name="description" rows="3" required></textarea>
+  </label>
+  <label>Критичность
+    <select name="criticality">
+      <option value="normal">Обычное</option>
+      <option value="critical">Критическое</option>
+    </select>
+  </label>
+  <input type="hidden" name="record_id" value="<%= recordId %>">
+  <input type="hidden" name="batch_id" value="<%= batchId %>">
+  <button class="btn-primary">Зарегистрировать</button>
+</form>

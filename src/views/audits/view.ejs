@@ -1,0 +1,136 @@
+<p><a href="/audits">← Аудиты</a></p>
+<div class="toolbar">
+  <h1 style="margin:0"><%= audit.title %></h1>
+  <span class="chip <%= audit.status==='closed'?'chip-ok':(audit.status==='sent'?'chip-warn':'chip-muted') %>"><%=
+    ({planned:'Запланирован', in_progress:'Идёт', completed:'Завершён', sent:'Отправлен ответственному', responded:'Получен ответ', closed:'Закрыт'})[audit.status]
+  %></span>
+</div>
+
+<div class="card">
+  <dl class="kv">
+    <dt>Стандарт</dt><dd><%= audit.standard_name || '—' %></dd>
+    <dt>Точка требования</dt><dd><%= audit.map_clause || '—' %></dd>
+    <dt>Дата проведения</dt><dd><%= audit.planned_date || '—' %></dd>
+    <dt>Аудитор</dt><dd><%= audit.auditor_name || '—' %></dd>
+    <dt>Ответственный</dt><dd><%= audit.responsible_name || '—' %></dd>
+  </dl>
+
+  <div class="actions">
+    <% if (audit.status === 'planned' && isManager) { %>
+      <form method="POST" action="/audits/<%= audit.id %>/start" style="display:inline"><button class="btn-primary">Начать аудит</button></form>
+    <% } %>
+    <% if (audit.status === 'in_progress' && isManager) { %>
+      <form method="POST" action="/audits/<%= audit.id %>/complete" style="display:inline"><button class="btn-primary">Завершить аудит</button></form>
+    <% } %>
+    <% if (audit.status === 'completed' && isManager) { %>
+      <form method="POST" action="/audits/<%= audit.id %>/send" style="display:inline">
+        <button class="btn-primary">Отправить отчёт ответственному (<%= audit.responsible_name || 'не назначен' %>)</button>
+      </form>
+    <% } %>
+    <% if (audit.status === 'responded' && isManager) { %>
+      <form method="POST" action="/audits/<%= audit.id %>/close" style="display:inline"><button class="btn-primary">Закрыть аудит</button></form>
+    <% } %>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Чек-лист аудита (<%= items.length %>)</h2>
+  <% var pending = items.filter(it => it.result === null); var answered = items.filter(it => it.result !== null); %>
+
+  <% if (pending.length) { %>
+    <h3>Ожидают ответа (<%= pending.length %>)</h3>
+    <% pending.forEach(it => { %>
+      <div class="subcard">
+        <p><b><%= it.text %></b></p>
+        <% if (audit.status === 'in_progress' && (isManager || isAuditor)) { %>
+        <form method="POST" action="/audits/<%= audit.id %>/items/<%= it.id %>/answer" class="record-form inline-form" enctype="multipart/form-data">
+          <label>Результат
+            <select name="result">
+              <option value="compliant">Соответствует</option>
+              <option value="observation">Замечание</option>
+              <option value="critical">Критическое</option>
+            </select>
+          </label>
+          <label>Комментарий <input type="text" name="comment"></label>
+          <label>Фото <input type="file" name="photo" accept="image/*"></label>
+          <button class="btn-primary">Ответить</button>
+        </form>
+        <% } else { %><p class="muted">Ожидает ответа аудитора.</p><% } %>
+      </div>
+    <% }) %>
+  <% } %>
+
+  <h3>Отвечено (<%= answered.length %>)</h3>
+  <% if (!answered.length) { %><p class="muted">Пока нет отвеченных пунктов.</p><% } else { %>
+  <table>
+    <thead><tr><th>Пункт</th><th>Результат</th><th>Комментарий</th><th>Фото</th><th>Несоответствие</th></tr></thead>
+    <tbody>
+    <% answered.forEach(it => { %>
+      <tr class="<%= it.result !== 'compliant' ? 'row-warn' : '' %>">
+        <td><%= it.text %></td>
+        <td><%= ({compliant:'Соответствует', observation:'Замечание', critical:'Критическое'})[it.result] %></td>
+        <td><%= it.comment || '—' %></td>
+        <td><% if (it.photo_path) { %><a href="/uploads/<%= it.photo_path %>" target="_blank" rel="noopener">📎 фото</a><% } else { %>—<% } %></td>
+        <td><% if (it.nc_id) { %><a href="/nonconformities/<%= it.nc_id %>">#<%= it.nc_id %> (<%= it.nc_status %>)</a><% } else { %>—<% } %></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+
+  <% if (audit.status === 'in_progress' && isManager && templates.length) { %>
+    <div class="subcard">
+      <h3>Применить готовый чек-лист</h3>
+      <form method="POST" action="/audits/<%= audit.id %>/apply-template" class="inline-form">
+        <select name="template_id" required>
+          <% templates.forEach(t => { %><option value="<%= t.id %>"><%= t.name %> (<%= t.items_count %> пунктов)</option><% }) %>
+        </select>
+        <button class="btn-secondary">Применить</button>
+      </form>
+      <p class="hint">Пункты появятся выше в разделе «Ожидают ответа». Можно применить несколько шаблонов подряд. <a href="/checklist-templates">Все шаблоны →</a></p>
+    </div>
+  <% } %>
+
+  <% if (audit.status === 'in_progress' && (isManager || isAuditor)) { %>
+    <div class="subcard">
+      <h3>Добавить пункт вручную</h3>
+      <form method="POST" action="/audits/<%= audit.id %>/items" class="record-form" enctype="multipart/form-data">
+        <label>Формулировка пункта / что проверялось *
+          <input type="text" name="text" required placeholder="например, график калибровки СИ актуализирован и соблюдается">
+        </label>
+        <label>Результат
+          <select name="result">
+            <option value="compliant">Соответствует</option>
+            <option value="observation">Замечание</option>
+            <option value="critical">Критическое</option>
+          </select>
+        </label>
+        <label>Комментарий <textarea name="comment" rows="2"></textarea></label>
+        <label>Фото <input type="file" name="photo" accept="image/*"></label>
+        <button class="btn-primary">Добавить</button>
+        <p class="hint">При отметке «Замечание» или «Критическое» несоответствие создаётся автоматически (раздел 4.1.3).</p>
+      </form>
+    </div>
+  <% } %>
+</div>
+
+<% if (audit.status === 'sent' && isResponsible) { %>
+<div class="card">
+  <h2>Ваш ответ по отчёту</h2>
+  <p class="muted">Вам направлен отчёт аудита как ответственному. Опишите, какую коррекцию вы будете делать.</p>
+  <form method="POST" action="/audits/<%= audit.id %>/respond" class="record-form">
+    <label>Что будет сделано *
+      <textarea name="response_text" rows="4" required></textarea>
+    </label>
+    <button class="btn-primary">Отправить ответ</button>
+  </form>
+</div>
+<% } %>
+
+<% if (audit.response_text) { %>
+<div class="card">
+  <h2>Ответ ответственного</h2>
+  <p><%= audit.response_text %></p>
+  <p class="hint">Написал: <%= audit.response_by_name %> · <%= audit.response_at %></p>
+</div>
+<% } %>

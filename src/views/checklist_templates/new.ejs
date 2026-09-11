@@ -1,0 +1,18 @@
+<p><a href="/checklist-templates">← Шаблоны чек-листов</a></p>
+<h1>Новый шаблон чек-листа</h1>
+<% if (error) { %><div class="alert-error"><%= error %></div><% } %>
+<form method="POST" action="/checklist-templates" class="card record-form">
+  <label>Название *
+    <input type="text" name="name" required placeholder="например, Пищевая безопасность — обход цеха">
+  </label>
+  <label>Категория
+    <input type="text" name="category" placeholder="например, Пищевая безопасность / Экология и охрана труда / Менеджмент качества">
+  </label>
+  <label>Стандарт (опционально)
+    <select name="standard_id">
+      <option value="">—</option>
+      <% standards.forEach(s => { %><option value="<%= s.id %>"><%= s.name %></option><% }) %>
+    </select>
+  </label>
+  <button class="btn-primary">Создать шаблон</button>
+</form>

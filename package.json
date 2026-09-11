@@ -1,0 +1,23 @@
+{
+  "name": "mersi-ism-platform",
+  "version": "0.1.0",
+  "description": "MerSI ISM Platform — рабочий прототип по ТЗ v6.0 (журналы, несоответствия, прослеживаемость, карта критических точек, конструктор полей)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "seed": "node src/seed.js",
+    "dev": "node --watch src/server.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.0",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "pg": "^8.12.0"
+  }
+}

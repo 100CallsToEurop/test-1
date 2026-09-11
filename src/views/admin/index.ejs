@@ -1,0 +1,113 @@
+<h1>Администрирование</h1>
+
+<div class="card" id="users">
+  <h2>Пользователи</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>ФИО</th><th>Логин</th><th>Роль</th><th>Подразделение</th><th>Статус</th><th></th></tr></thead>
+    <tbody>
+    <% users.forEach(u => { %>
+      <tr>
+        <td><%= u.full_name %></td><td><%= u.login %></td><td><%= u.role_code %></td><td><%= u.department %></td>
+        <td><%= u.status %></td>
+        <td class="btn-row">
+          <a class="link-btn" href="/admin/users/<%= u.id %>/journals">журналы</a>
+          <form method="POST" action="/admin/users/<%= u.id %>/toggle" class="inline-form">
+            <button class="link-btn"><%= u.status === 'active' ? 'заблокировать' : 'разблокировать' %></button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Новый пользователь</h3>
+  <form method="POST" action="/admin/users" class="record-form inline-form">
+    <input type="text" name="full_name" placeholder="ФИО" required>
+    <input type="text" name="login" placeholder="логин" required>
+    <input type="text" name="password" placeholder="пароль" required>
+    <select name="role_code" required>
+      <% roles.forEach(r => { %><option value="<%= r.code %>"><%= r.name %></option><% }) %>
+    </select>
+    <input type="text" name="department" placeholder="подразделение">
+    <button class="btn-primary">Создать</button>
+  </form>
+</div>
+
+<div class="card" id="roles">
+  <h2>Роли и права</h2>
+  <p class="muted">«Администратор» всегда имеет полный доступ. Остальным ролям права на конструктор / карту / аудиты выдаются здесь.</p>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Роль</th><% permissions.forEach(p => { %><th><%= p[1] %></th><% }) %><th></th></tr></thead>
+    <tbody>
+    <% roles.forEach(r => { if (r.code === 'admin') return; %>
+      <tr>
+        <td colspan="<%= permissions.length + 2 %>" style="padding:0; border:none">
+          <form method="POST" action="/admin/roles/<%= r.code %>/permissions" class="perm-row">
+            <table style="width:100%">
+              <tr>
+                <td style="width:220px"><%= r.name %> <span class="hint"><%= r.code %></span></td>
+                <% permissions.forEach(p => { %>
+                  <td style="text-align:center">
+                    <input type="checkbox" name="permissions" value="<%= p[0] %>" <%= (permMatrix[r.code] && permMatrix[r.code][p[0]]) ? 'checked' : '' %>>
+                  </td>
+                <% }) %>
+                <td><button class="link-btn" type="submit">сохранить</button></td>
+              </tr>
+            </table>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Новая роль</h3>
+  <form method="POST" action="/admin/roles" class="record-form inline-form">
+    <input type="text" name="code" placeholder="код (латиницей, например lab_manager)" required>
+    <input type="text" name="name" placeholder="название роли" required>
+    <button class="btn-primary">Создать роль</button>
+  </form>
+  <p class="hint">
+    Новая роль сама по себе не имеет права ни заполнять, ни проверять конкретные журналы (это определяется полями «заполняет»/«проверяет»
+    в паспорте журнала и назначением журналов пользователю), но ей можно сразу выдать доступ к конструктору/карте/аудитам в таблице выше.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Библиотека журналов — активация</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Журнал</th><th>Группа</th><th>Статус</th><th></th></tr></thead>
+    <tbody>
+    <% journals.forEach(j => { %>
+      <tr>
+        <td><a href="/journals/<%= j.id %>"><%= j.name %></a></td><td><%= j.group_name %></td><td><%= j.active ? 'включён' : 'выключен' %></td>
+        <td>
+          <form method="POST" action="/admin/journals/<%= j.id %>/toggle" class="inline-form">
+            <button class="link-btn"><%= j.active ? 'выключить' : 'включить' %></button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Аудиторский след (последние 200 действий)</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Когда</th><th>Кто</th><th>Действие</th><th>Объект</th></tr></thead>
+    <tbody>
+    <% auditLog.forEach(a => { %>
+      <tr><td><%= a.at %></td><td><%= a.actor_name || '—' %></td><td><%= a.action %></td><td><%= a.entity %> #<%= a.entity_id %></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<p><a href="/reports">← Отчёты</a></p>
+<h1>Доказательная база для аудита</h1>
+
+<form method="GET" action="/reports/evidence" class="card record-form inline-form">
+  <label>Группа журналов
+    <select name="group">
+      <option value="">Все</option>
+      <% groups.forEach(g => { %><option value="<%= g.group_name %>" <%= query.group===g.group_name?'selected':'' %>><%= g.group_name %></option><% }) %>
+    </select>
+  </label>
+  <label>Точка карты
+    <select name="map_point_id">
+      <option value="">Все</option>
+      <% points.forEach(p => { %><option value="<%= p.id %>" <%= String(query.map_point_id)===String(p.id)?'selected':'' %>><%= p.standard_name %> — <%= p.clause %></option><% }) %>
+    </select>
+  </label>
+  <label>С <input type="date" name="from" value="<%= query.from || '' %>"></label>
+  <label>По <input type="date" name="to" value="<%= query.to || '' %>"></label>
+  <button class="btn-primary">Сформировать</button>
+</form>
+
+<p><a class="btn-secondary" href="/reports/evidence.csv?<%= new URLSearchParams(query).toString() %>">Выгрузить CSV</a></p>
+
+<div class="card">
+  <p>Найдено записей: <%= records.length %></p>
+  <table>
+    <thead><tr><th>Журнал</th><th>Группа</th><th>Автор</th><th>Дата</th><th>Статус</th><th>Отклонение</th></tr></thead>
+    <tbody>
+    <% records.forEach(r => { %>
+      <tr class="<%= r.deviation ? 'row-danger' : '' %>">
+        <td><a href="/records/<%= r.id %>"><%= r.journal_name %></a></td>
+        <td><%= r.group_name %></td>
+        <td><%= r.author_name %></td>
+        <td><%= r.created_at %></td>
+        <td><%= r.status %></td>
+        <td><%= r.deviation ? 'да' : '—' %></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>

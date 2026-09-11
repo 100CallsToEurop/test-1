@@ -1,0 +1,20 @@
+<div class="login-wrap">
+  <div class="card login-card">
+    <h1>MerSI ISM Platform</h1>
+    <p class="muted">Вход в систему</p>
+    <% if (error) { %><div class="alert-error"><%= error %></div><% } %>
+    <form method="POST" action="/login">
+      <label>Логин
+        <input type="text" name="login" required autofocus>
+      </label>
+      <label>Пароль
+        <input type="password" name="password" required>
+      </label>
+      <button type="submit" class="btn-primary">Войти</button>
+    </form>
+    <p class="muted small">
+      Демо-логины: operator, quality, shift_lead, storekeeper, auditor, director, admin.<br>
+      Пароль = логин + «123» (например, admin / admin123).
+    </p>
+  </div>
+</div>

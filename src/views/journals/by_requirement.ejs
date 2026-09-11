@@ -1,0 +1,40 @@
+<p><a href="/journals">← Библиотека журналов</a></p>
+<h1>Журналы по требованиям стандартов</h1>
+<p class="muted">Собирает журналы под каждый пункт/требование, к которому они привязаны в карте критических точек. Привязка задаётся на странице <a href="/map">«Карта критических точек»</a>.</p>
+
+<% points.forEach(p => { %>
+  <div class="card req-block">
+    <div class="req-title"><%= p.standard_name %> — <%= p.clause %> <span class="badge"><%= p.point_type %></span></div>
+    <% if (!p.journals.length) { %>
+      <p class="muted">К этому требованию пока не привязан ни один журнал.</p>
+    <% } else { %>
+      <table>
+        <thead><tr><th>Журнал</th><th>Группа</th><th>Тип</th></tr></thead>
+        <tbody>
+        <% p.journals.forEach(j => { %>
+          <tr>
+            <td><a href="/journals/<%= j.id %>"><%= j.name %></a> <% if (!j.active) { %><span class="badge-off">выключен</span><% } %></td>
+            <td><%= j.group_name %></td>
+            <td><span class="badge"><%= j.form_type %></span></td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+<% }) %>
+
+<div class="card">
+  <h2>Журналы без привязки к требованию (<%= unassigned.length %>)</h2>
+  <% if (!unassigned.length) { %>
+    <p class="muted">Все журналы привязаны к какому-либо требованию.</p>
+  <% } else { %>
+    <table>
+      <thead><tr><th>Журнал</th><th>Группа</th></tr></thead>
+      <tbody>
+      <% unassigned.forEach(j => { %><tr><td><%= j.name %></td><td><%= j.group_name %></td></tr><% }) %>
+      </tbody>
+    </table>
+    <p class="hint">Привязать их к требованию можно на странице «Карта критических точек».</p>
+  <% } %>
+</div>

@@ -1,0 +1,46 @@
+<% if (quickEligible) { %>
+<div class="card quick-add" id="quick-added">
+  <div class="quick-add-head">
+    <h2 style="margin:0">Быстрая запись</h2>
+    <% if (lastRecord) { %>
+      <span class="hint">Последняя: <%= lastRecord.created_at %><% if (lastRecord.deviation) { %> · <span class="chip chip-danger">было отклонение</span><% } %></span>
+    <% } %>
+  </div>
+  <form method="POST" action="/records/<%= journal.id %>" class="quick-add-form">
+    <input type="hidden" name="quick" value="1">
+    <input type="hidden" name="return_view" value="<%= view %>">
+    <input type="hidden" name="return_q" value="<%= query.q || '' %>">
+    <input type="hidden" name="return_from" value="<%= query.from || '' %>">
+    <input type="hidden" name="return_to_date" value="<%= query.to || '' %>">
+    <% fields.forEach(f => { %>
+      <div class="quick-field">
+        <label class="quick-label"><%= f.label %><% if (f.required) { %> *<% } %></label>
+        <% if (f.type === 'text') { %>
+          <input type="text" name="<%= f.code %>" <%= f.required ? 'required' : '' %> autocomplete="off">
+        <% } else if (f.type === 'number') { %>
+          <input type="number" step="any" name="<%= f.code %>" <%= f.required ? 'required' : '' %>
+            placeholder="<%= (f.norm_min!==null && f.norm_min!==undefined) || (f.norm_max!==null && f.norm_max!==undefined) ? ((f.norm_min ?? '—') + '…' + (f.norm_max ?? '—')) : '' %>">
+        <% } else if (f.type === 'date') { %>
+          <input type="date" name="<%= f.code %>" <%= f.required ? 'required' : '' %>>
+        <% } else if (f.type === 'select') { %>
+          <select name="<%= f.code %>" <%= f.required ? 'required' : '' %>>
+            <option value="">—</option>
+            <% (f.options || []).forEach(o => { %><option value="<%= o %>"><%= o %></option><% }) %>
+          </select>
+        <% } else if (f.type === 'checklist_item') { %>
+          <span class="toggle-group">
+            <label class="toggle-btn"><input type="radio" name="<%= f.code %>" value="Да" required> Да</label>
+            <label class="toggle-btn toggle-btn-no"><input type="radio" name="<%= f.code %>" value="Нет"> Нет</label>
+          </span>
+        <% } %>
+      </div>
+    <% }) %>
+    <button class="btn-primary quick-submit">+ Добавить</button>
+  </form>
+</div>
+<% } else { %>
+<div class="toolbar" style="margin-bottom:14px">
+  <a class="btn-primary" href="/records/<%= journal.id %>/new">+ Новая запись</a>
+  <span class="hint">Эта форма сложнее короткой — открывается на отдельной странице.</span>
+</div>
+<% } %>

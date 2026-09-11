@@ -1,0 +1,24 @@
+<h1>Конструктор журналов и чек-листов</h1>
+<p class="muted">Доступно ролям с правом «Конструктор» (раздел «Роли и права» в администрировании). Название журнала открывает его записи; «Редактировать поля» — конструктор схемы.</p>
+<div class="btn-row" style="margin-bottom:16px">
+  <a class="btn-primary" href="/constructor/new">+ Новый журнал с нуля</a>
+  <a class="btn-secondary" href="/checklist-templates">Шаблоны чек-листов →</a>
+</div>
+
+<div class="card">
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Журнал</th><th>Группа</th><th>Тип</th><th></th></tr></thead>
+    <tbody>
+    <% journals.forEach(j => { %>
+      <tr>
+        <td><a href="/journals/<%= j.id %>"><%= j.name %></a></td>
+        <td><%= j.group_name %></td>
+        <td><span class="badge"><%= j.form_type %></span></td>
+        <td><a href="/constructor/<%= j.id %>">Редактировать поля →</a></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>

@@ -1,0 +1,66 @@
+<p><a href="/nonconformities">← Несоответствия</a></p>
+<h1>Несоответствие №<%= nc.id %></h1>
+
+<div class="card">
+  <dl class="kv">
+    <dt>Описание</dt><dd><%= nc.description %></dd>
+    <dt>Критичность</dt><dd><%= nc.criticality === 'critical' ? 'критическое' : 'обычное' %></dd>
+    <dt>Статус</dt><dd><%= ({registered:'Зарегистрировано', assigned:'Назначено', in_progress:'В работе', verified:'Проверено', closed:'Закрыто'})[nc.status] %></dd>
+    <dt>Создал</dt><dd><%= nc.creator_name %> (<%= nc.created_at %>)</dd>
+    <% if (nc.assignee_name) { %><dt>Исполнитель</dt><dd><%= nc.assignee_name %> · срок: <%= nc.due_date || '—' %></dd><% } %>
+    <% if (nc.closer_name) { %><dt>Закрыл</dt><dd><%= nc.closer_name %> (<%= nc.closed_at %>)</dd><% } %>
+    <% if (relatedRecord) { %><dt>Связанная запись</dt><dd><a href="/records/<%= relatedRecord.id %>"><%= relatedRecord.journal_name %> от <%= relatedRecord.created_at %></a></dd><% } %>
+    <% if (relatedAudit) { %><dt>Из аудита</dt><dd><a href="/audits/<%= relatedAudit.id %>"><%= relatedAudit.title %></a> — «<%= relatedAudit.item_text %>»</dd><% } %>
+  </dl>
+
+  <% if (nc.status === 'registered' || nc.status === 'assigned') { %>
+  <div class="subcard">
+    <h3>Назначение исполнителя и срока</h3>
+    <form method="POST" action="/nonconformities/<%= nc.id %>/assign" class="record-form inline-form">
+      <label>Исполнитель
+        <select name="assignee_id">
+          <option value="">—</option>
+          <% users.forEach(u => { %><option value="<%= u.id %>" <%= nc.assignee_id===u.id?'selected':'' %>><%= u.full_name %></option><% }) %>
+        </select>
+      </label>
+      <label>Срок <input type="date" name="due_date" value="<%= nc.due_date || '' %>"></label>
+      <button class="btn-primary">Назначить</button>
+    </form>
+  </div>
+  <% } %>
+
+  <div class="actions">
+    <% if (nc.status === 'assigned') { %>
+      <form method="POST" action="/nonconformities/<%= nc.id %>/start" style="display:inline"><button class="btn-secondary">Взять в работу</button></form>
+    <% } %>
+    <% if (['assigned','in_progress'].includes(nc.status)) { %>
+      <form method="POST" action="/nonconformities/<%= nc.id %>/verify" style="display:inline"><button class="btn-secondary">Проверить устранение</button></form>
+    <% } %>
+    <% if (nc.status === 'verified' || (nc.status !== 'closed' && nc.criticality !== 'critical')) { %>
+      <form method="POST" action="/nonconformities/<%= nc.id %>/close" style="display:inline"><button class="btn-primary">Закрыть</button></form>
+    <% } %>
+  </div>
+
+  <% if (segregationBlocked) { %>
+    <p class="alert-error">Вы назначены исполнителем по этому критическому несоответствию — закрыть его вы не можете (раздел 4.2, правило разделения обязанностей).</p>
+  <% } %>
+  <% if (nc.criticality === 'critical' && nc.status !== 'closed') { %>
+    <p class="hint">Критическое несоответствие может закрыть только руководитель/директор по качеству, и не тот, кто был исполнителем.</p>
+  <% } %>
+</div>
+
+<div class="card">
+  <h2>Корректирующее действие — что будет сделано</h2>
+  <% if (nc.corrective_action) { %>
+    <p><%= nc.corrective_action %></p>
+    <p class="hint">Записал: <%= nc.corrective_action_by_name || '—' %> · <%= nc.corrective_action_at || '' %></p>
+  <% } else { %>
+    <p class="muted">Исполнитель ещё не описал, какую коррекцию планирует сделать.</p>
+  <% } %>
+  <form method="POST" action="/nonconformities/<%= nc.id %>/corrective-action" class="record-form">
+    <label>Описать/обновить корректирующее действие
+      <textarea name="corrective_action" rows="3"><%= nc.corrective_action || '' %></textarea>
+    </label>
+    <button class="btn-secondary">Сохранить</button>
+  </form>
+</div>

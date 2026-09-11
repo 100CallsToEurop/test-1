@@ -1,0 +1,32 @@
+<p><a href="/traceability">← Прослеживаемость</a></p>
+<h1>Партия <%= batch.number %></h1>
+<p class="muted">Продукт: <%= batch.product || '—' %> · Дата: <%= batch.produced_at || '—' %> · Сформировано за <%= elapsedMs %> мс (критерий приёмки №4 — не более 5 минут)</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Обратная трассировка (сырьё и предшествующие партии)</h2>
+    <% if (!back.length) { %><p class="muted">Нет данных.</p><% } else { %>
+      <ul><% back.forEach(b => { %><li><a href="/traceability/<%= encodeURIComponent(b.number) %>"><%= b.number %></a> — <%= b.product || '' %></li><% }) %></ul>
+    <% } %>
+  </div>
+  <div class="card">
+    <h2>Прямая трассировка (куда вошла партия)</h2>
+    <% if (!fwd.length) { %><p class="muted">Нет данных.</p><% } else { %>
+      <ul><% fwd.forEach(b => { %><li><a href="/traceability/<%= encodeURIComponent(b.number) %>"><%= b.number %></a> — <%= b.product || '' %></li><% }) %></ul>
+    <% } %>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Связанные записи журналов</h2>
+  <% if (!relatedRecords.length) { %><p class="muted">Записей нет.</p><% } else { %>
+    <table>
+      <thead><tr><th>Журнал</th><th>Дата</th><th>Статус</th><th></th></tr></thead>
+      <tbody>
+      <% relatedRecords.forEach(r => { %>
+        <tr><td><%= r.journal_name %></td><td><%= r.created_at %></td><td><%= r.status %></td><td><a href="/records/<%= r.id %>">Открыть →</a></td></tr>
+      <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>

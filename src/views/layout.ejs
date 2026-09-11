@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> — MerSI ISM Platform</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="<%= locals.user ? '' : 'no-sidebar' %>">
+<% if (locals.user) { %>
+<div id="appShell" class="app-shell">
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-head">
+      <a href="/" class="brand">MerSI&nbsp;ISM</a>
+      <button id="sidebarPin" class="icon-btn" title="Закрепить/скрыть панель">⟨⟩</button>
+    </div>
+
+    <nav class="tree">
+      <a class="tree-link <%= currentPath === '/' ? 'active' : '' %>" href="/">📊 Дашборд</a>
+
+      <div class="tree-group">
+        <button class="tree-toggle <%= currentPath.startsWith('/journals') ? 'open' : '' %>" data-target="t-journals">
+          <span class="chev">▸</span> 📒 Журналы
+        </button>
+        <div id="t-journals" class="tree-children <%= currentPath.startsWith('/journals') ? 'show' : '' %>">
+          <a class="tree-link <%= currentPath === '/journals' ? 'active' : '' %>" href="/journals">Библиотека журналов</a>
+          <a class="tree-link <%= currentPath === '/journals/by-requirement' ? 'active' : '' %>" href="/journals/by-requirement">По требованиям стандартов</a>
+          <% if (locals.navGroups) { navGroups.forEach(g => { %>
+            <a class="tree-link tree-sub" href="/journals?group=<%= encodeURIComponent(g.group_name) %>"><%= g.group_name %></a>
+          <% }) } %>
+        </div>
+      </div>
+
+      <a class="tree-link <%= currentPath.startsWith('/nonconformities') ? 'active' : '' %>" href="/nonconformities">⚠️ Несоответствия</a>
+      <a class="tree-link <%= currentPath.startsWith('/traceability') ? 'active' : '' %>" href="/traceability">🔗 Прослеживаемость</a>
+      <a class="tree-link <%= currentPath.startsWith('/map') ? 'active' : '' %>" href="/map">🗺️ Карта критических точек</a>
+      <a class="tree-link <%= currentPath.startsWith('/audits') ? 'active' : '' %>" href="/audits">📋 Аудиты</a>
+      <a class="tree-link <%= currentPath.startsWith('/reports') ? 'active' : '' %>" href="/reports">📈 Отчёты</a>
+
+      <% if (['admin','quality','auditor'].includes(user.role_code)) { %>
+        <div class="tree-group">
+          <button class="tree-toggle <%= (currentPath.startsWith('/constructor') || currentPath.startsWith('/checklist-templates')) ? 'open' : '' %>" data-target="t-tools">
+            <span class="chev">▸</span> 🛠️ Инструменты
+          </button>
+          <div id="t-tools" class="tree-children <%= (currentPath.startsWith('/constructor') || currentPath.startsWith('/checklist-templates')) ? 'show' : '' %>">
+            <a class="tree-link <%= currentPath.startsWith('/constructor') ? 'active' : '' %>" href="/constructor">Конструктор журналов</a>
+            <a class="tree-link <%= currentPath.startsWith('/checklist-templates') ? 'active' : '' %>" href="/checklist-templates">Шаблоны чек-листов</a>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (user.role_code === 'admin') { %>
+        <a class="tree-link <%= currentPath.startsWith('/admin') ? 'active' : '' %>" href="/admin">⚙️ Администрирование</a>
+      <% } %>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="userbox">
+        <div class="user-name"><%= user.full_name %></div>
+        <div class="user-role"><%= user.role_code %></div>
+      </div>
+      <form method="POST" action="/logout"><button class="link-btn">Выйти</button></form>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <div class="mobile-topbar">
+      <button id="sidebarToggleMobile" class="icon-btn">☰</button>
+      <span class="brand"><%= title %></span>
+    </div>
+    <main class="container">
+      <% if (locals.flash) { %>
+        <div class="alert-<%= flash.type === 'error' ? 'error' : 'info' %> flash-banner"><%= flash.message %></div>
+      <% } %>
+      <%- body %>
+    </main>
+  </div>
+</div>
+
+<script>
+(function () {
+  var shell = document.getElementById('appShell');
+  var pinBtn = document.getElementById('sidebarPin');
+  var mobileBtn = document.getElementById('sidebarToggleMobile');
+  var KEY = 'mersi-sidebar-collapsed';
+
+  function apply(collapsed) {
+    shell.classList.toggle('sidebar-collapsed', collapsed);
+  }
+  var saved = localStorage.getItem(KEY) === '1';
+  apply(saved);
+
+  pinBtn.addEventListener('click', function () {
+    var collapsed = !shell.classList.contains('sidebar-collapsed');
+    apply(collapsed);
+    localStorage.setItem(KEY, collapsed ? '1' : '0');
+  });
+  mobileBtn.addEventListener('click', function () {
+    shell.classList.toggle('sidebar-open-mobile');
+  });
+
+  document.querySelectorAll('.tree-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var target = document.getElementById(btn.getAttribute('data-target'));
+      var show = !target.classList.contains('show');
+      target.classList.toggle('show', show);
+      btn.classList.toggle('open', show);
+    });
+  });
+})();
+</script>
+<% } else { %>
+  <main class="container">
+    <%- body %>
+  </main>
+<% } %>
+</body>
+</html>

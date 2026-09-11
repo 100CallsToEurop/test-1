@@ -1,0 +1,55 @@
+<p><a href="/journals/<%= journal.id %>">← <%= journal.name %></a></p>
+<h1>Новая запись — <%= journal.name %></h1>
+<% if (lastRecord) { %><p class="muted small">Последняя запись: <%= lastRecord.created_at %></p><% } %>
+
+<% if (errors && errors.length) { %>
+  <div class="alert-error">
+    <ul><% errors.forEach(e => { %><li><%= e %></li><% }) %></ul>
+  </div>
+<% } %>
+
+<form method="POST" action="/records/<%= journal.id %>" class="card record-form-grid" enctype="multipart/form-data">
+  <% fields.forEach((f, i) => { %>
+    <% const wide = ['indicator_table','checklist_item','photo','text'].includes(f.type); %>
+    <label class="<%= wide ? 'field-wide' : 'field-compact' %>">
+      <%= f.label %><% if (f.required) { %> *<% } %>
+      <% if (f.type === 'text') { %>
+        <input type="text" name="<%= f.code %>" value="<%= values[f.code] || '' %>" <%= f.required ? 'required' : '' %> <%= i===0 ? 'autofocus' : '' %>>
+      <% } else if (f.type === 'number') { %>
+        <input type="number" step="any" name="<%= f.code %>" value="<%= values[f.code] || '' %>" <%= f.required ? 'required' : '' %> <%= i===0 ? 'autofocus' : '' %>>
+        <% if (f.norm_min !== null && f.norm_min !== undefined || f.norm_max !== null && f.norm_max !== undefined) { %>
+          <span class="hint">норма: <%= f.norm_min ?? '—' %> … <%= f.norm_max ?? '—' %> <%= f.unit || '' %></span>
+        <% } %>
+      <% } else if (f.type === 'date') { %>
+        <input type="date" name="<%= f.code %>" value="<%= values[f.code] || '' %>" <%= f.required ? 'required' : '' %>>
+      <% } else if (f.type === 'select') { %>
+        <select name="<%= f.code %>" <%= f.required ? 'required' : '' %>>
+          <option value="">—</option>
+          <% (f.options || []).forEach(o => { %><option value="<%= o %>" <%= values[f.code]===o?'selected':'' %>><%= o %></option><% }) %>
+        </select>
+      <% } else if (f.type === 'checklist_item') { %>
+        <span class="toggle-group">
+          <label class="toggle-btn"><input type="radio" name="<%= f.code %>" value="Да" <%= values[f.code]==='Да'?'checked':'' %> required> Да</label>
+          <label class="toggle-btn toggle-btn-no"><input type="radio" name="<%= f.code %>" value="Нет" <%= values[f.code]==='Нет'?'checked':'' %>> Нет</label>
+        </span>
+      <% } else if (f.type === 'photo') { %>
+        <input type="file" name="<%= f.code %>" accept="image/*,.pdf" <%= f.required ? 'required' : '' %>>
+        <span class="hint">фото или файл-подтверждение, до 15 МБ</span>
+      <% } else if (f.type === 'indicator_table') { %>
+        <span class="hint">колонки: <%= (f.columns || []).join(' ; ') %> — по одной строке на показатель, значения через «;»</span>
+        <textarea name="<%= f.code %>" rows="4" placeholder="<%= (f.columns || []).join(';') %>"><%= values[f.code] || '' %></textarea>
+      <% } %>
+    </label>
+  <% }) %>
+
+  <label class="field-wide">
+    Партия (опционально)
+    <input type="text" name="batch_number" placeholder="например, ГП-2026-0002">
+    <span class="hint">если указать номер, запись будет связана с этой партией в модуле прослеживаемости</span>
+  </label>
+
+  <div class="field-wide btn-row">
+    <button type="submit" class="btn-primary">Сохранить запись</button>
+    <button type="submit" name="again" value="1" class="btn-secondary">Сохранить и создать ещё</button>
+  </div>
+</form>

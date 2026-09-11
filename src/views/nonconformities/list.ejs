@@ -1,0 +1,46 @@
+<h1>Несоответствия</h1>
+<a class="btn-primary" href="/nonconformities/new">+ Зарегистрировать несоответствие</a>
+
+<details class="filter-details" <%= (query.status || query.criticality || query.q) ? 'open' : '' %>>
+  <summary>Поиск и фильтры<% if (query.status || query.criticality || query.q) { %> <span class="chip chip-warn">активны</span><% } %></summary>
+  <form method="GET" action="/nonconformities" class="filter-form-compact">
+    <input type="text" name="q" value="<%= query.q || '' %>" placeholder="поиск по описанию">
+    <select name="status">
+      <option value="">Все статусы</option>
+      <option value="registered" <%= query.status==='registered'?'selected':'' %>>Зарегистрировано</option>
+      <option value="assigned" <%= query.status==='assigned'?'selected':'' %>>Назначено</option>
+      <option value="in_progress" <%= query.status==='in_progress'?'selected':'' %>>В работе</option>
+      <option value="verified" <%= query.status==='verified'?'selected':'' %>>Проверено</option>
+      <option value="closed" <%= query.status==='closed'?'selected':'' %>>Закрыто</option>
+    </select>
+    <select name="criticality">
+      <option value="">Любая критичность</option>
+      <option value="critical" <%= query.criticality==='critical'?'selected':'' %>>Критическое</option>
+      <option value="normal" <%= query.criticality==='normal'?'selected':'' %>>Обычное</option>
+    </select>
+    <button class="btn-secondary">Найти</button>
+    <a class="link-btn" href="/nonconformities">Сбросить</a>
+  </form>
+</details>
+
+<div class="card">
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>№</th><th>Описание</th><th>Критичность</th><th>Статус</th><th>Исполнитель</th><th>Создал</th><th>Дата</th></tr></thead>
+    <tbody>
+    <% items.forEach(n => { %>
+      <tr class="<%= n.criticality === 'critical' && n.status !== 'closed' ? 'row-danger' : '' %>">
+        <td><a href="/nonconformities/<%= n.id %>">#<%= n.id %></a></td>
+        <td><%= n.description %></td>
+        <td><%= n.criticality === 'critical' ? 'критическое' : 'обычное' %></td>
+        <td><%= ({registered:'Зарегистрировано', assigned:'Назначено', in_progress:'В работе', verified:'Проверено', closed:'Закрыто'})[n.status] %></td>
+        <td><%= n.assignee_name || '—' %></td>
+        <td><%= n.creator_name %></td>
+        <td><%= n.created_at %></td>
+      </tr>
+    <% }) %>
+    <% if (!items.length) { %><tr><td colspan="7" class="muted">Ничего не найдено.</td></tr><% } %>
+    </tbody>
+  </table>
+  </div>
+</div>

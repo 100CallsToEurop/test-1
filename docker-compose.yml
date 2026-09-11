@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=mersi
+      - POSTGRES_PASSWORD=mersi
+      - POSTGRES_DB=mersi_ism
+    volumes:
+      - mersi-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mersi -d mersi_ism"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3011:3011"
+    environment:
+      - PORT=3011
+      - SESSION_SECRET=change-me-to-a-random-string
+      - DATABASE_URL=postgres://mersi:mersi@db:5432/mersi_ism
+    volumes:
+      - mersi-uploads:/app/uploads
+    restart: unless-stopped
+
+volumes:
+  mersi-pgdata:
+  mersi-uploads:

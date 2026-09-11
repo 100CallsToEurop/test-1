@@ -1,0 +1,57 @@
+<div class="toolbar">
+  <h1 style="margin:0">Библиотека журналов</h1>
+  <a class="btn-secondary" href="/journals/by-requirement">📎 Вид по требованиям стандартов</a>
+</div>
+<p class="muted">
+  <% if (fullAccess) { %>Показаны все активные журналы (ваша роль видит всю библиотеку).<% } else { %>Показаны только журналы, назначенные вам администратором.<% } %>
+  Найдено: <%= totalCount %>.
+</p>
+
+<details class="filter-details" <%= (query.group || query.standard_id || query.form_type || query.q) ? 'open' : '' %>>
+  <summary>Поиск и фильтры<% if (query.group || query.standard_id || query.form_type || query.q) { %> <span class="chip chip-warn">активны</span><% } %></summary>
+  <form method="GET" action="/journals" class="filter-form-compact">
+    <input type="text" name="q" value="<%= query.q || '' %>" placeholder="поиск по названию">
+    <select name="group">
+      <option value="">Все группы</option>
+      <% groupsList.forEach(g => { %><option value="<%= g.group_name %>" <%= query.group===g.group_name?'selected':'' %>><%= g.group_name %></option><% }) %>
+    </select>
+    <select name="standard_id">
+      <option value="">Все стандарты</option>
+      <% standards.forEach(s => { %><option value="<%= s.id %>" <%= String(query.standard_id)===String(s.id)?'selected':'' %>><%= s.name %></option><% }) %>
+    </select>
+    <select name="form_type">
+      <option value="">Все типы</option>
+      <% ['T1','T2','T3','T4'].forEach(t => { %><option value="<%= t %>" <%= query.form_type===t?'selected':'' %>><%= t %></option><% }) %>
+    </select>
+    <button class="btn-secondary">Применить</button>
+    <a class="link-btn" href="/journals">Сбросить</a>
+  </form>
+</details>
+
+<% if (!Object.keys(byGroup).length) { %>
+  <div class="card"><p class="muted">Ничего не найдено — измените фильтр или обратитесь к администратору за доступом к журналам.</p></div>
+<% } %>
+
+<% Object.keys(byGroup).forEach(group => { %>
+  <div class="card">
+    <h2><%= group %> (<%= byGroup[group].length %>)</h2>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>Журнал</th><th>Тип</th><th>Периодичность</th><th>Заполняет</th><th>Проверяет</th><th>Требование</th><th>Записей</th></tr></thead>
+      <tbody>
+      <% byGroup[group].forEach(j => { %>
+        <tr>
+          <td><a href="/journals/<%= j.id %>"><%= j.name %></a> <% if (!j.active) { %><span class="badge-off">выключен</span><% } %></td>
+          <td><span class="badge"><%= j.form_type %></span></td>
+          <td><%= j.periodicity %></td>
+          <td><%= j.role_fill %></td>
+          <td><%= j.role_verify %></td>
+          <td><%= j.map_clause ? (j.standard_name + ' — ' + j.map_clause) : '—' %></td>
+          <td><%= j.records_count %></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+<% }) %>
